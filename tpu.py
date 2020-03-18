@@ -16,19 +16,19 @@ def create_model():
        tf.keras.layers.Dense(10)])
 
 
-def get_dataset(batch_size=200):
+def process(image, label):
+  image = tf.cast(image, tf.float32)
+  image = image/255.
+  return image, label
+
+def get_dataset(batch_size=2048):
   mnist = tfds.builder('mnist', data_dir='gs://arabert-mnist-gs/')
   mnist.download_and_prepare()
-  mnist_train, mnist_test = mnist.as_dataset(split=['train', 'test'])
+  mnist_train, mnist_test = mnist.as_dataset(split=['train', 'test'], as_supervised=True)
+  print(mnist_train)
 
-  def scale(image, label):
-    image = tf.cast(image, tf.float32)
-    image /= 255.0
-
-    return image, label
-
-  train_dataset = mnist_train.map(scale).shuffle(10000).batch(batch_size)
-  test_dataset = mnist_test.map(scale).batch(batch_size)
+  train_dataset = mnist_train.map(process).shuffle(10000).batch(batch_size, drop_remainder=True)
+  test_dataset = mnist_test.map(process).batch(batch_size, drop_remainder=True)
 
   return train_dataset, test_dataset
 
