@@ -1,0 +1,31 @@
+
+//create bucket
+gsutil mb -p arabert -c standard -l europe-west4 -b on gs://arabert-mnist-gs/
+
+//create a vm only machine 
+ctpu up --zone=europe-west4-a \
+  --vm-only \
+  --disk-size-gb=100 \
+  --machine-type=n1-standard-8 \
+  --tf-version=2.1 \
+  --name=arabert-mnist-vm
+
+//in case it is not sshed auto 
+gcloud compute ssh arabert-mnist-vm --zone=europe-west4-a
+
+//create a tpu only machine 
+ctpu up --tpu-only \
+  --tpu-size=v3-8  \
+  --zone=europe-west4-a \
+  --tf-version=1.15 \
+  --name=arabert-bert \
+  --preemptible  
+
+//cleaning up 
+ctpu delete --zone=europe-west4-a --name=arabert-mnist-vm
+
+//remove bucket
+gsutil rm -r gs://arabert-mnist-gs/
+
+//show tpu list
+gcloud compute tpus list --zone=europe-west4-a
